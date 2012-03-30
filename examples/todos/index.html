@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>Backbone.js Todos</title>
+  <link rel="stylesheet" href="todos.css"/>
+</head>
+
+<body>
+  
+  <div id="todoapp">
+  </div>
+  
+  <div id="instructions">
+    Double-click to edit a todo.
+  </div>
+  
+  <div id="credits">
+    Created by
+    <br />
+    <a href="http://jgn.me/">J&eacute;r&ocirc;me Gravel-Niquet</a>.
+    <br />Rewritten by: <a href="http://addyosmani.github.com/todomvc">TodoMVC</a>.
+  </div>
+
+  <script src="../../lib/jquery.min.js"></script>
+  <script src="../../lib/underscore-min.js"></script>
+  <script src="../../lib/backbone-min.js"></script>
+  <script src="../backbone-localstorage.js"></script>
+  <script src="../../backbone.page.js"></script>
+  <script src="todos.js"></script>
+
+  <!-- Templates -->
+  
+  <script type="text/template" id="app-template">
+      <div id="header">
+          <span class="title"> TODO </span>
+          <span style="float: right;" id="info-view">
+          </span>
+      </div>
+      <div id="content">
+      </div>
+  </script>
+
+  <script type="text/template" id="info-template">
+      <span> <%= length %> </span>
+  </script>
+
+  <script type="text/template" id="item-template">
+    <div class="view">
+      <input class="toggle" type="checkbox" <%= done ? 'checked="checked"' : '' %> />
+      <label><%= title %></label>
+      <p><%= detail %></p>
+      <a class="destroy"></a>
+    </div>
+  </script>
+
+  <script type="text/template" id="stats-template">
+    <% if (done) { %>
+      <a id="clear-completed">Clear <%= done %> completed <%= done == 1 ? 'item' : 'items' %></a>
+    <% } %>
+    <div class="todo-count"><b><%= remaining %></b> <%= remaining == 1 ? 'item' : 'items' %> left</div>
+  </script>
+
+  <script type="text/template" id="add-template">
+      <form>
+          <legend>Change Todo</legend>
+          <input type=text name="title" placeholder="Title" />
+          <textarea type=text name="detail" placeholder="Details"/>
+          <a class="save" href="#">Save</a>
+          <a class="cancel" href="#">Cancel</a>
+      </form>
+  </script>
+
+  <script type="text/template" id="list-template">
+      <header>
+          <a id="new-todo" href="#add">Add todo</a>
+      </header>
+
+      <section id="main">
+          <input id="toggle-all" type="checkbox">
+          <label for="toggle-all">Mark all as complete</label>
+          <ul id="todo-list"></ul>
+      </section>
+
+      <footer>
+          <a id="clear-completed">Clear completed</a>
+          <div id="todo-count"></div>
+      </footer>
+
+  </script>
+
+  </body>
+</html>
