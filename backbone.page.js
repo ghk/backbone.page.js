@@ -154,6 +154,9 @@
               }
           }
         },
+        preLoad: function(loadFlow, callbacks){
+            callbacks.success();
+        },
         openPage: function(pageClass){
 
             var
@@ -167,7 +170,11 @@
             }
 
             loadFlow = getLoadFlow(this, pageClass, pageArgs);
-            applyLoadFlow(router, loadFlow, pageArgs);
+            this.preLoad(loadFlow, {
+                success: function(){
+                    applyLoadFlow(router, loadFlow, pageArgs);
+                }
+            });
         }
 
     });
