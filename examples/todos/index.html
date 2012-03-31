@@ -13,7 +13,7 @@
   </div>
   
   <div id="instructions">
-    Double-click to edit a todo.
+    Click title to edit a todo.
   </div>
   
   <div id="credits">
@@ -49,7 +49,7 @@
   <script type="text/template" id="item-template">
     <div class="view">
       <input class="toggle" type="checkbox" <%= done ? 'checked="checked"' : '' %> />
-      <label><%= title %></label>
+      <a href="#<%= id %>"><label><%= title %></label></a>
       <p><%= details %></p>
       <a class="destroy"></a>
     </div>

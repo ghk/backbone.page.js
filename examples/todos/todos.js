@@ -17,6 +17,7 @@ $(function () {
             return {
                 title:"empty todo...",
                 order:Todos.nextOrder(),
+                id: guid(),
                 details: "",
                 done:false
             };
@@ -98,7 +99,6 @@ $(function () {
         // The DOM events specific to an item.
         events:{
             "click .toggle":"toggleDone",
-            "dblclick .view":"edit",
             "click a.destroy":"clear"
         },
 
@@ -122,12 +122,6 @@ $(function () {
             this.model.toggle();
         },
 
-        // Switch this view into `"editing"` mode, displaying the input field.
-        edit:function (e) {
-            e.preventDefault();
-            window.Router.navigate(this.model.id, true);
-        },
-
         // Remove the item, destroy the model.
         clear:function () {
             this.model.clear();
@@ -146,7 +140,6 @@ $(function () {
 
         // Delegated events for creating new items, and clearing completed ones.
         events:{
-            "click #new-todo":"add",
             "click #clear-completed":"clearCompleted",
             "click #toggle-all":"toggleAllComplete"
         },
@@ -204,13 +197,6 @@ $(function () {
             Todos.each(this.addOne);
         },
 
-        // If you hit return in the main input field, create new **Todo** model,
-        // persisting it to *localStorage*.
-        add:function (e) {
-            e.preventDefault();
-            window.Router.navigate("add", true);
-        },
-
         // Clear all done todo items, destroying their models.
         clearCompleted:function () {
             _.each(Todos.done(), function (todo) {
@@ -242,7 +228,6 @@ $(function () {
 
     var EditView = Backbone.View.extend({
         events:{
-            "click .cancel":"cancel",
             "click .save":"save"
         },
         initialize:function () {
@@ -256,10 +241,6 @@ $(function () {
                 "title": this.$("[name='title']").val(),
                 "details": this.$("[name='details']").val()
             });
-            e.preventDefault();
-            window.Router.navigate("", true);
-        },
-        cancel:function (e) {
             e.preventDefault();
             window.Router.navigate("", true);
         },
@@ -313,7 +294,7 @@ $(function () {
     var EditPage = Backbone.Page.extend({
         load: function(callbacks, id){
             this.model = Todos.get(id);
-            callbacks.finish();
+            callbacks.success();
         },
         open:function () {
             this.view = new EditView({model: this.model}).render();
