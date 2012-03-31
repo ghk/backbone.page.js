@@ -72,11 +72,15 @@ According to tradition, in `example` folder you can find Todo example. It is a s
 
 ```javascript
     var TodoPage = Backbone.Page.extend({
+        load: function(callbacks){
+            Todos.fetch(callbacks);
+        },
         open:function () {
             $("#todoapp").html($('#app-template').html());
             this.infoView = new InfoView({el:"#info-view", collection:Todos}).render();
         },
         close:function () {
+            this.infoView.remove();
         }
     });
 
@@ -84,11 +88,11 @@ According to tradition, in `example` folder you can find Todo example. It is a s
         open:function () {
             this.view = new ListView({collection:Todos}).render();
             this.view.$el.appendTo($("#content"));
+            document.title = "Todos";
         },
         close:function () {
             this.view.remove();
-        },
-        title: "Todos"
+        }
     });
     ListPage.parentPageClass = TodoPage;
 
@@ -96,33 +100,30 @@ According to tradition, in `example` folder you can find Todo example. It is a s
         open:function () {
             this.view = new EditView().render();
             this.view.$el.appendTo($("#content"));
+            document.title = "Add Todos";
         },
         close:function () {
             this.view.remove();
-        },
-        title: "Add Todo"
+        }
     });
     AddPage.parentPageClass = TodoPage;
 
     var EditPage = Backbone.Page.extend({
         load: function(callbacks, id){
             this.model = Todos.get(id);
-            callbacks.finish();
+            callbacks.success();
         },
         open:function () {
             this.view = new EditView({model: this.model}).render();
             this.view.$el.appendTo($("#content"));
+            document.title = this.model.get("title");
         },
         close:function () {
             this.view.remove();
-        },
-        makeTitle: function(){
-            return this.model.get("title");
         }
     });
     EditPage.parentPageClass = TodoPage;
 
-    Todos.fetch();
     window.Router = new Backbone.PageRouter({
         pageClasses:[TodoPage, ListPage, AddPage, EditPage],
         pageRoutes:{

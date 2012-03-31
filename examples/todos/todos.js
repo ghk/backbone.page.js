@@ -17,6 +17,7 @@ $(function () {
             return {
                 title:"empty todo...",
                 order:Todos.nextOrder(),
+                details: "",
                 done:false
             };
         },
@@ -253,7 +254,7 @@ $(function () {
             }
             this.model.save({
                 "title": this.$("[name='title']").val(),
-                "detail": this.$("[name='detail']").val()
+                "details": this.$("[name='details']").val()
             });
             e.preventDefault();
             window.Router.navigate("", true);
@@ -266,18 +267,22 @@ $(function () {
             this.$el.html($('#add-template').html());
             if(this.model){
                 this.$("[name='title']").val(this.model.get("title"));
-                this.$("[name='detail']").val(this.model.get("detail"));
+                this.$("[name='details']").val(this.model.get("details"));
             }
             return this;
         }
     });
 
     var TodoPage = Backbone.Page.extend({
+        load: function(callbacks){
+            Todos.fetch(callbacks);
+        },
         open:function () {
             $("#todoapp").html($('#app-template').html());
             this.infoView = new InfoView({el:"#info-view", collection:Todos}).render();
         },
         close:function () {
+            this.infoView.remove();
         }
     });
 
@@ -285,11 +290,11 @@ $(function () {
         open:function () {
             this.view = new ListView({collection:Todos}).render();
             this.view.$el.appendTo($("#content"));
+            document.title = "Todos";
         },
         close:function () {
             this.view.remove();
-        },
-        title: "Todos"
+        }
     });
     ListPage.parentPageClass = TodoPage;
 
@@ -297,11 +302,11 @@ $(function () {
         open:function () {
             this.view = new EditView().render();
             this.view.$el.appendTo($("#content"));
+            document.title = "Add Todos";
         },
         close:function () {
             this.view.remove();
-        },
-        title: "Add Todo"
+        }
     });
     AddPage.parentPageClass = TodoPage;
 
@@ -313,17 +318,14 @@ $(function () {
         open:function () {
             this.view = new EditView({model: this.model}).render();
             this.view.$el.appendTo($("#content"));
+            document.title = this.model.get("title");
         },
         close:function () {
             this.view.remove();
-        },
-        makeTitle: function(){
-            return this.model.get("title");
         }
     });
     EditPage.parentPageClass = TodoPage;
 
-    Todos.fetch();
     window.Router = new Backbone.PageRouter({
         pageClasses:[TodoPage, ListPage, AddPage, EditPage],
         pageRoutes:{

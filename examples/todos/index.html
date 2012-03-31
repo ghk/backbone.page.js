@@ -50,7 +50,7 @@
     <div class="view">
       <input class="toggle" type="checkbox" <%= done ? 'checked="checked"' : '' %> />
       <label><%= title %></label>
-      <p><%= detail %></p>
+      <p><%= details %></p>
       <a class="destroy"></a>
     </div>
   </script>
@@ -66,7 +66,7 @@
       <form>
           <legend>Change Todo</legend>
           <input type=text name="title" placeholder="Title" />
-          <textarea type=text name="detail" placeholder="Details"/>
+          <textarea type=text name="details" placeholder="Details"/>
           <a class="save" href="#">Save</a>
           <a class="cancel" href="#">Cancel</a>
       </form>

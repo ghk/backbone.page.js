@@ -20,16 +20,11 @@
             return false;
         },
         load : function(callbacks){
-            callbacks.finish();
+            callbacks.success();
         },
 
         open: function(){},
-        close: function(){},
-
-        makeTitle: function(){
-            return this.title;
-        }
-        
+        close: function(){}
     });
 
     Backbone.Page.isDescendantOf = function(pageClass){
@@ -46,19 +41,6 @@
 
     Backbone.Page.extend = Backbone.Model.extend;
 
-
-    function loadTemplatePacks(router, toOpenClasses, success, error){
-        var requiredPacks = _.flatten(_.map(toOpenClasses, function (p) { return p.templatePacks; }));
-        var unloadedPacks = _.uniq(_.without(requiredPacks, router.loadedTemplatePacks));
-        Backbone.Page.loadTemplatePacks(unloadedPacks, {
-            success: function(){
-                for(var i = 0; i < unloadedPacks.length; i++)
-                    router.loadedTemplatePacks.push(unloadedPacks[i]);
-                success();
-            },
-            error: error
-        });
-    }
 
     function getLoadFlow(router, pageClass, pageArgs){
         var toOpenClasses, it, commonAncestor, needReload, persistPage;
@@ -124,7 +106,7 @@
         i = 0;
 
         callbacks = {
-            finish:function () {
+            success:function () {
                 if (router.loadJobId === loadJobId) {
 
                     it.open();
@@ -133,16 +115,14 @@
 
                     i++;
                     if (i < toOpenClasses.length)
-                        this.run();
-                    else
-                        document.title = it.makeTitle();
+                        callbacks.run();
                 }
             },
             run:function () {
                 var loadArgs, toOpen = toOpenClasses[i];
 
                 loadArgs = pageArgs.slice(0);
-                loadArgs.unshift(this);
+                loadArgs.unshift(callbacks);
 
                 it = new toOpen();
                 it.parentPage = router.leafPage;
@@ -207,9 +187,7 @@
 
             var router = this;
             loadFlow = getLoadFlow(this, pageClass, pageArgs);
-            loadTemplatePacks(this, loadFlow.toOpenClasses, function(){
-                applyLoadFlow(router, loadFlow, pageArgs);
-            });
+            applyLoadFlow(router, loadFlow, pageArgs);
         }
 
     });
