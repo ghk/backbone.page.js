@@ -34,7 +34,7 @@
 
         while(commonAncestor != router.rootPage){
             if(pageClass.isDescendantOf(commonAncestor.constructor))
-                    break;
+                break;
             commonAncestor = commonAncestor.parentPage;
         }
 
@@ -48,7 +48,7 @@
         it = commonAncestor;
         while(it != router.rootPage){
             if(it.willReload.apply(it, pageArgs)){
-                    needReload = it;
+                needReload = it;
             }
             it = it.parentPage;
         }
@@ -99,6 +99,8 @@
                     i++;
                     if (i < toOpenClasses.length)
                         callbacks.run();
+                    else
+                        router.postLoad(loadFlow, it);
                 }
             },
             run:function () {
@@ -143,19 +145,21 @@
 
                 //TODO: change id
                 this.route(route, pageClass.id, callback);
-          }
+            }
 
-          function makeCallback(pageClass){
-              var pc = pageClass;
-              return function(){
+            function makeCallback(pageClass){
+                var pc = pageClass;
+                return function(){
                     var args = arraySlice.call(arguments);
                     args.unshift(pc);
                     router.openPage.apply(router, args);
-              }
-          }
+                }
+            }
         },
         preLoad: function(loadFlow, callbacks){
             callbacks.success();
+        },
+        postLoad: function(loadFlow, page){
         },
         openPage: function(pageClass){
 
@@ -180,4 +184,5 @@
     });
 
 }).call(this);
+
 
