@@ -1,21 +1,19 @@
-/*
-
-    Page: a collection of views, has models and responsible for retrieving them, delegate that models to views, has unique url to route
-            page can has a sub-page
-
-*/
-
 (function(){
 
-    Backbone.Page = function(){
-        this.childPages = [];
-        this.models = {};
-        this.views = [];
-    };
-
+    Backbone.Page = function(){};
+    //statics method
+    _.extend(Backbone.Page, {
+        extend: Backbone.Model.extend,
+        isDescendantOf: function(pageClass){
+            if(this.parentPageClass == pageClass)
+                return true;
+            if(_.isUndefined(this.parentPageClass))
+                return false;
+            return this.parentPageClass.isDescendantOf(pageClass);
+        }
+    });
+    //instance method
     _.extend(Backbone.Page.prototype, {
-        templatePacks: [],
-
         willReload: function(){
             return false;
         },
@@ -26,21 +24,6 @@
         open: function(){},
         close: function(){}
     });
-
-    Backbone.Page.isDescendantOf = function(pageClass){
-        if(this.parentPageClass == pageClass)
-            return true;
-        if(_.isUndefined(this.parentPageClass))
-            return false;
-        return this.parentPageClass.isDescendantOf(pageClass);
-    }
-
-    Backbone.Page.loadTemplatePacks = function(packs, callbacks){
-        callbacks.success();
-    }
-
-    Backbone.Page.extend = Backbone.Model.extend;
-
 
     function getLoadFlow(router, pageClass, pageArgs){
         var toOpenClasses, it, commonAncestor, needReload, persistPage;
@@ -132,8 +115,7 @@
         callbacks.run();
     }
 
-
-
+    var arraySlice = Array.prototype.slice;
     Backbone.PageRouter = Backbone.Router.extend({
         constructor: function(options){
             var RootPage = Backbone.Page.extend({});
@@ -141,8 +123,6 @@
             var rootPage = new RootPage();
             this.rootPage = this.leafPage = rootPage;
             this.activePages = [rootPage];
-
-            this.loadedTemplatePacks = [];
 
             this.pageClasses = options.pageClasses;
             _.each(this.pageClasses, function(pageClass){
@@ -168,7 +148,7 @@
           function makeCallback(pageClass){
               var pc = pageClass;
               return function(){
-                    var args = Array.prototype.slice.call(arguments);
+                    var args = arraySlice.call(arguments);
                     args.unshift(pc);
                     router.openPage.apply(router, args);
               }
@@ -176,16 +156,16 @@
         },
         openPage: function(pageClass){
 
-            var loadFlow;
-
-            var pageArgs = Array.prototype.slice.call(arguments, 1, arguments.length);
+            var
+                loadFlow,
+                pageArgs = arraySlice.call(arguments, 1, arguments.length),
+                router = this;
 
             if(pageClass === this.leafPage.constructor){
                 if(!this.leafPage.willReload.apply(this.leafPage, pageArgs))
                     return;
             }
 
-            var router = this;
             loadFlow = getLoadFlow(this, pageClass, pageArgs);
             applyLoadFlow(router, loadFlow, pageArgs);
         }
