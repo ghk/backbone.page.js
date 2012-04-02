@@ -3,14 +3,7 @@
     Backbone.Page = function(){};
     //statics method
     _.extend(Backbone.Page, {
-        extend: Backbone.Model.extend,
-        isDescendantOf: function(pageClass){
-            if(this.parentPageClass == pageClass)
-                return true;
-            if(_.isUndefined(this.parentPageClass))
-                return false;
-            return this.parentPageClass.isDescendantOf(pageClass);
-        }
+        extend: Backbone.Model.extend
     });
     //instance method
     _.extend(Backbone.Page.prototype, {
@@ -25,45 +18,52 @@
         close: function(){}
     });
 
+    /*
+        Find lowest common ancestor between an opened page to page class to open
+     */
+    function findLCA(page, pageClass){
+        var pages = [], pageClasses = [], result = undefined;
+
+        while(page){
+            pages.push(page);
+            page = page.parentPage;
+        }
+
+        while(pageClass){
+            pageClasses.push(pageClass);
+            pageClass = pageClass.parentPageClass;
+        }
+
+        while(pages.length > 0 && pageClasses.length > 0){
+            page = pages.pop();
+            pageClass = pageClasses.pop();
+            if(page.constructor != pageClass){
+                return result;
+            }
+            result = page;
+        }
+        return result;
+    }
+
     function getLoadFlow(router, pageClass, pageArgs){
-        var toOpenClasses, it, commonAncestor, needReload, persistPage;
+        var toOpenClasses, it, persistPage;
 
-        commonAncestor = router.leafPage;
         toOpenClasses = [];
-        persistPage = router.rootPage;
+        persistPage = findLCA(router.leafPage, pageClass);
 
-        while(commonAncestor != router.rootPage){
-            if(pageClass.isDescendantOf(commonAncestor.constructor))
-                break;
-            commonAncestor = commonAncestor.parentPage;
-        }
-
-        it = router.leafPage;
-        while(it.constructor != commonAncestor.constructor){
-            it = it.parentPage;
-            persistPage = it;
-        }
-
-        needReload = null;
-        it = commonAncestor;
+        //query to root page whether some page need to reload
+        //the highest will reload page become persist page
+        it = persistPage;
         while(it != router.rootPage){
             if(it.willReload.apply(it, pageArgs)){
-                needReload = it;
-            }
-            it = it.parentPage;
-        }
-
-        if(needReload != null){
-            it = commonAncestor;
-            while(it != needReload){
-                it = it.parentPage;
                 persistPage = it;
             }
+            it = it.parentPage;
         }
 
         it = pageClass;
         while(it != persistPage.constructor){
-            toOpenClasses.unshift(it);
+            toOpenClasses.unshift(it); //unshift so array become top-down
             it = it.parentPageClass;
         }
 
@@ -85,6 +85,9 @@
             router.activePages.pop();
             router.leafPage = it.parentPage;
         }
+
+        if(toOpenClasses.length <= 0)
+            return;
 
         i = 0;
 
@@ -120,31 +123,45 @@
     var arraySlice = Array.prototype.slice;
     Backbone.PageRouter = Backbone.Router.extend({
         constructor: function(options){
+            //internal root page to make it easier so we dont have to deal with undefined parent page
             var RootPage = Backbone.Page.extend({});
-            RootPage.id = "#root";
             var rootPage = new RootPage();
             this.rootPage = this.leafPage = rootPage;
+
             this.activePages = [rootPage];
 
-            this.pageClasses = options.pageClasses;
+            //get all page from routes
+            this.pageClasses = [];
+            var leafPageClasses = _.values(options.pageRoutes);
+            for(var i = 0, len = leafPageClasses.length; i < len; i++){
+                var pageClass = leafPageClasses[i];
+                while(pageClass){
+                    this.pageClasses.push(pageClass);
+                    pageClass = pageClass.parentPageClass;
+                }
+            }
+            this.pageClasses = _.unique(this.pageClasses);
+
             _.each(this.pageClasses, function(pageClass){
                 if(_.isUndefined(pageClass.parentPageClass)){
                     pageClass.parentPageClass = RootPage;
                 }
             });
 
-            this._bindPageRoutes(options.pageRoutes);
+            this._bindPageRoutes(options.pageRoutes, options.routesRoot);
 
             Backbone.Router.prototype.constructor.apply(this, arguments);
         },
-        _bindPageRoutes : function(pageRoutes) {
-            var router = this;
+        _bindPageRoutes : function(pageRoutes, routesRoot) {
+            var router = this, pageClass, callback;
             for (var route in pageRoutes){
-                var pageClass = pageRoutes[route];
-                var callback =  makeCallback(pageClass);
+                pageClass = pageRoutes[route];
+                callback =  makeCallback(pageClass);
 
                 //TODO: change id
                 this.route(route, pageClass.id, callback);
+                if(!_.isUndefined(routesRoot))
+                    this.route(routesRoot+route, pageClass.id, callback);
             }
 
             function makeCallback(pageClass){
@@ -184,5 +201,4 @@
     });
 
 }).call(this);
-
 

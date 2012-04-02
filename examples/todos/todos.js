@@ -308,7 +308,6 @@ $(function () {
     EditPage.parentPageClass = TodoPage;
 
     window.Router = new Backbone.PageRouter({
-        pageClasses:[TodoPage, ListPage, AddPage, EditPage],
         pageRoutes:{
             "":ListPage,
             ":id":EditPage,

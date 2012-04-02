@@ -61,37 +61,50 @@ $(document).ready(function(){
         var PageC = Backbone.Page.extend({});
 
         var router = new Backbone.PageRouter({
-            pageClasses: [PageA, PageB, PageC],
-            pageRoutes: {}
+            pageRoutes: {
+                'a': PageA,
+                'b': PageB,
+                'c': PageC
+            }
         });
         equal(router.pageClasses.length, 3);
         notEqual(router, undefined, "router is defined");
     });
 
     test("Router: open page from null", function() {
-        var PageA = Backbone.Page.extend({
+        var Page = Backbone.Page.extend({
+            open: function(){
+                console.log("opening "+this.constructor.id);
+            },
+            close: function(){
+                console.log("closing "+this.constructor.id);
+            }
+        })
+        var PageA = Page.extend({
         }, {
             "id": "a"
         });
-        var PageAB = Backbone.Page.extend({
+        var PageAB = Page.extend({
         }, {
             "id": "a.b",
             "parentPageClass": PageA
         });
-        var PageAC = Backbone.Page.extend({
+        var PageAC = Page.extend({
         }, {
             "id": "a.c",
             "parentPageClass": PageA
         });
-        var PageABD = Backbone.Page.extend({
+        var PageABD = Page.extend({
         }, {
             "id": "a.b.d",
             "parentPageClass": PageAB
         });
 
         var router = new Backbone.PageRouter({
-            pageClasses: [PageA, PageAB, PageAC, PageABD],
-            pageRoutes: {}
+            pageRoutes: {
+                'abd': PageABD,
+                'ac':PageAC
+            }
         });
 
         console.log(router.pageClasses);
@@ -101,7 +114,26 @@ $(document).ready(function(){
         equal(router.activePages.length, 3);
         equal(router.leafPage.constructor.id, "a.c");
         console.log(_.map(router.activePages, function(p){return p.constructor.id}));
-        console.log(router.leafPage.constructor.id);
+
+        router.openPage(PageABD);
+        equal(router.activePages.length, 4);
+        equal(router.leafPage.constructor.id, "a.b.d");
+        console.log(_.map(router.activePages, function(p){return p.constructor.id}));
+
+        router.openPage(PageAB);
+        equal(router.activePages.length, 3);
+        equal(router.leafPage.constructor.id, "a.b");
+        console.log(_.map(router.activePages, function(p){return p.constructor.id}));
+
+        router.openPage(PageAC);
+        equal(router.activePages.length, 3);
+        equal(router.leafPage.constructor.id, "a.c");
+        console.log(_.map(router.activePages, function(p){return p.constructor.id}));
+
+        router.openPage(PageAB);
+        equal(router.activePages.length, 3);
+        equal(router.leafPage.constructor.id, "a.b");
+        console.log(_.map(router.activePages, function(p){return p.constructor.id}));
 
         router.openPage(PageABD);
         equal(router.activePages.length, 4);
